@@ -1,0 +1,23 @@
+TTK4192: Mission Planning for Autonomous Systems
+
+This file describe each file in this folde.
+
+1) The main file is called: mission_planner_ttj4192.py
+2) The folder ai_planning_module contains functions of the ai planner.
+3) The folder gnc_robot_module contains functions of the robot
+4) The folde  pathfinding_module contains functions of the pathfinding algorithm.
+5) The folder utils: another packages and scripts used in the project.
+
+Commands to execute the mission planner for robots:
+1) open the gazebo map
+roscore
+export TURTLEBOT3_MODEL=waffle
+cd catkin_ws
+source devel/setup.bash
+roslaunch turtlebot3_gazebo turtlebot3_ttk4192.launch  
+
+2) running the mission planner
+cd catkin_ws
+source devel/setup.bash
+rosrun assigment4_ttk4192 mission_planner_ttk4192.py
+
