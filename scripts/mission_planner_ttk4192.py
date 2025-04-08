@@ -8,7 +8,7 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from math import pi, sqrt, atan2, tan
 from os import system, name
-from time import time
+import time
 import re
 import fileinput
 import sys
@@ -21,6 +21,10 @@ from matplotlib.patches import Rectangle
 from itertools import product
 from utils.astar import Astar
 from utils.utils import plot_a_car, get_discretized_thetas, round_theta, same_point
+from utils.environment import Environment_robplan
+from utils.car import SimpleCar
+from utils.grid import Grid_robplan
+from ai_planner_modules.aiplanning import GraphPlan
 import cv2
 from std_msgs.msg import String
 from sensor_msgs.msg import Image
@@ -29,40 +33,7 @@ import shutil
 import copy
 # Import here the packages used in your codes
 
-""" ----------------------------------------------------------------------------------
-Mission planner for Autonomos robots: TTK4192,NTNU. 
-Date:20.03.23
-characteristics: AI planning,GNC, hybrid A*, ROS.
-robot: Turtlebot3
-version: 1.1
-""" 
 
-
-# 1) Program here your AI planner 
-"""
-Graph plan ---------------------------------------------------------------------------
-"""
-class GraphPlan(object):
-    def __init__(self, domain, problem):
-        self.independentActions = []
-        self.noGoods = []
-        self.graph = []
-
-    def graphPlan(self):
-        # initialization
-        initState = self.initialState
-
-    def extract(self, Graph, subGoals, level):
-
-        if level == 0:
-            return []
-        if subGoals in self.noGoods[level]:
-            return None
-        plan = self.gpSearch(Graph, subGoals, [], level)
-        if plan is not None:
-            return plan
-        self.noGoods[level].append([subGoals])
-        return None
 
 
 #2) GNC module (path-followig and PID controller for the robot)
@@ -264,7 +235,7 @@ def main_hybrid_a(heu,start_pos, end_pos,reverse, extra, grid_on):
 
     tc = map_grid_robplan()
     env = Environment_robplan(tc.obs)
-    car = SimpleCar_robplan(env, start_pos, end_pos)
+    car = SimpleCar(env, start_pos, end_pos)
     grid = Grid_robplan(env)
 
     hastar = HybridAstar(car, grid, reverse)
@@ -406,26 +377,27 @@ def main_hybrid_a(heu,start_pos, end_pos,reverse, extra, grid_on):
 
     plt.show()
 
-# Create a map grid here for Hybrid A* 
+# Should be relatively precise, though do not assume it is consistent to real world
 
 class map_grid_robplan:
+
     def __init__(self):
 
-        self.start_pos2 = [4, 4, 0]
-        self.end_pos2 = [4, 8, -pi]
+        self.start_pos2 = [0.5, 0.5, -pi/2]
+        self.end_pos2 = [0.9, 2.55, -pi/2]
         self.obs = [
-            [25, 0, 15, 2], 
-            [0, 0, 1.37, 1.37],   
-            [38.6, 2, 1.37, 1.37], 
-            [25.5, 21, 1.37, 1.37],   
+            [0.25, 1.1, 0.5, 0.2],   # box_wall_left
+            [1.7, 0.8, 0.5, 0.2],    # box_wp1
+            [3.41, 0.8, 0.5, 0.2],   # box_wp2
+            [1.3, 1.85, 0.2, 0.4],   # random_1
+            [2.6, 1.85, 0.4, 0.4],   # random_2
+            [3.81, 1.95, 0.4, 0.2],  # box_wp6
+            [1.0, 0.1, 2.0, 0.2],    # box_corner
         ]
 
 
 #4) Program here the turtlebot actions (based in your AI planner)
-"""
-Turtlebot 3 actions-------------------------------------------------------------------------
-"""
-
+# ALL ACTIONS ARE PRE-MADE AND HAVE NOT BEEN CHANGED
 class TakePhoto:
     def __init__(self):
 
@@ -579,9 +551,12 @@ def charge_battery_waypoint0():
     time.sleep(5)
 
 
-# Define the global varible: WAYPOINTS  Wpts=[[x_i,y_i]];
+# Define the global varible: WAYPOINTS  Wpts=[[x_i, y_i, theta]];
 global WAYPOINTS
-WAYPOINTS = [[1,1],[2,2]]
+WAYPOINTS = [[0.2,0.2, 0],[1.7,1.6, 0], [3.4, 1, pi], [3.3, 2.65, 0], [5.0, 0.3, 0], [0.9, 2.55, 0], [3.8, 1.65, 0]]
+
+domain_file = "/home/andreas/catkin_ws/src/temporal-planning-main/temporal-planning/domains/ttk4192/domain/PDDL_domain_1.pddl"
+problem_file = "/home/andreas/catkin_ws/src/temporal-planning-main/temporal-planning/domains/ttk4192/problem/PDDL_problem_1.pddl"
 
 
 # 5) Program here the main commands of your mission planner code
@@ -602,74 +577,10 @@ if __name__ == '__main__':
         print()
         print("Press Intro to start ...")
         input_t=input("")
-        # 5.0) Testing the GNC module (uncomment lines to test)
-
-        # aea
-        # aea 2
-        # aea 3
-        # aea 4
         
-
-		# 5.1) Starting the AI Planner
-       
-        a_plan=1    
-        if a_plan==1:
-           print(" ---Executing Graph planner --- ")
-           time.sleep(1)
-           if len(sys.argv) != 1 and len(sys.argv) != 3:
-                print("Usage: GraphPlan.py domainName problemName")
-                exit()
-            # Here you need to load your PDDL domain
-           dir_p="/home/miguel/catkin_ws/src/assigment4_ttk4192/scripts/ai_planner_modules/PDDL_domain/"
-           domain = dir_p+"dwrDomain_turtlebot.txt"
-           problem = dir_p+"dwrProblem_turtlebot.txt"
-           if len(sys.argv) == 3:
-                domain = str(sys.argv[1])
-                problem = str(sys.argv[2])
-           gp = GraphPlan(domain, problem)
-           start = time.time()
-           plan = gp.graphPlan()
-           elapsed = time.time() - start
-           plan=np.array(plan)
-           l=[]
-            #print([plan.action for action in plan])
-           if plan is not None:
-                print("Plan found with %d actions in %.2f seconds" %
-                    (len([act for act in plan if not act.isNoOp()]), elapsed))            
-                for i in range(len(plan)):
-                    #print(plan[i])
-                    l.append(plan[i])
-           else:
-                print("Could not find a plan in %.2f seconds" % elapsed)
-
-            #print(l[1])
-           m=[]
-           for i in range(len(l)):
-                a=str(l[i])
-                for k in a:
-                    if a[0].isupper():
-                        m.append(a)
-                        break
-           plan_general=m
-           #print("Plan in graph -plan",plan_general)
-           # expansion of names of actions graph notation
-           for i in range(len(plan_general)):
-               if plan_general[i]=="Pr2":
-                   plan_general[i]="taking_photo"
-               if plan_general[i]=="Tr3":
-                   plan_general[i]="making_turn"
-           print("Plan: ",plan_general)
-        else:
-           time.sleep()
-           print("No valid option")
-   
-    
-        # 5.2) Reading the plan 
-        print("  ")
-        print("Reading the plan from AI planner")
-        print("  ")
-        plan_general=plan_general
-        print(plan_general[0])
+        #Performing graph planning
+        gp = GraphPlan(domain_file, problem_file)
+        plan_general = gp.graphPlan()
 
         # 5.3) Start mission execution 
         # convert string into functions and executing
@@ -680,9 +591,20 @@ if __name__ == '__main__':
         task_finished=0
         task_total=len(plan_general)
         i_ini=0
+
+        # Defined a dictionary with the waypoints, used for the aiplanner.py
+        waypoint_coords = {
+        "waypoint0": [0.2, 0.2, 0],
+        "waypoint1": [1.7, 1.6, 0],
+        "waypoint2": [3.4, 1.0, pi],
+        "waypoint3": [3.3, 2.65, 0],
+        "waypoint4": [5.0, 0.3, 0],
+        "waypoint5": [0.9, 2.55, 0],
+        "waypoint6": [3.8, 1.65, 0]
+        }
+
+        # Execution is very rudementary, this should/could be changed
         while i_ini < task_total:
-            move_robot_waypoint0_waypoint1()
-            #taking_photo_exe()
 
             plan_temp=plan_general[i_ini].split()
             print(plan_temp)
@@ -696,9 +618,10 @@ if __name__ == '__main__':
                 time.sleep(1)
 
             if plan_temp[0]=="move_robot":
-                print("move_robot_waypoints")
+                goal = waypoint_coords[plan_general[1]]
+                self.odom_sub = rospy.Subscriber("odom", Odometry, self.odom_callback)
 
-                time.sleep(1)
+                time.sleep(0.5)
 
             if plan_temp[0]=="move_charge_robot":
                 print("")

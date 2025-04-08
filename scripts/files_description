@@ -3,10 +3,10 @@ TTK4192: Mission Planning for Autonomous Systems
 This file describe each file in this folde.
 
 1) The main file is called: mission_planner_ttj4192.py
-2) The folder ai_planning_module contains functions of the ai planner.
-3) The folder gnc_robot_module contains functions of the robot
-4) The folde  pathfinding_module contains functions of the pathfinding algorithm.
-5) The folder utils: another packages and scripts used in the project.
+2) The folder ai_planning_module contains functions of the ai planner, aswell as PDDL files. The temporal planner will output the produced file to a specific location specified in the aiplanning.py file.
+3) The folder gnc_robot_module contains functions of the robot. Could most likely divide the GNC.py into multiple scripts. If this is desired, please do so
+4) The folde  pathfinding_module contains functions of the pathfinding algorithm. So far it contains hybrid A*.
+5) The folder utils: another packages and scripts used in the project, mostly comming from CA2.
 
 Commands to execute the mission planner for robots:
 1) open the gazebo map

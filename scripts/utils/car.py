@@ -23,14 +23,18 @@ class State:
 class SimpleCar:
     """ Car model and functions. """
     # Here you define the vehicle size "l" and the maximun_drift angle max_phi
-    def __init__(self, env, start_pos=None, end_pos=None, l=1, max_phi=pi/5):
+    # The car is repurposed from the original car model in the original code into a scaled down version
+    # This was done by modifying l=1 to l=0.3 and changing carl and carw to 1*carl and 1*carw
+    # The most important part is to ensure that it can create a path that the turtlebot can follow
+    # This model should produce an achieavable path, since it assumes 2 degrees of freedom, compared to the turtlebots 3
+    def __init__(self, env, start_pos=None, end_pos=None, l=0.3, max_phi=pi/3):
 
         self.env = env
         self.l = float(l)
         self.max_phi = max_phi
 
-        self.carl = 1.6 * self.l
-        self.carw = 0.8 * self.l
+        self.carl = 1 * self.l
+        self.carw = 1 * self.l
 
         self.whll = 0.4 * self.l
         self.whlw = 0.2 * self.l

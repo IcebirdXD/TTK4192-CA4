@@ -4,7 +4,7 @@ from utils.intersection import polygons_overlapping, rectangle_ringsector_inters
 class Obstacle:
     """ Rectangle obstacles. """
 
-    def __init__(self, x, y, w, h, safe_dis=0.1):
+    def __init__(self, x, y, w, h, safe_dis=0.05): # Change the safe_dis if the Hybrid A* struggles with pathing, could be contributing factor
 
         self.x = float(x)
         self.y = float(y)

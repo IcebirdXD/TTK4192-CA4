@@ -10,8 +10,9 @@ from utils.environment import Environment
 class Grid:
     """ Grid configuration. """
 
-    def __init__(self, env, cell_size=0.25):
-
+    def __init__(self, env, cell_size=0.05): # Cell size could/should be changed, though this impacts performance
+        # cell_size=0.1 gives a map resolution of 0.1m, if tolerances are smaller, create a smaller cell size
+        # Also do so in the init further down, cannot remember which is used, just do it to be safe
         self.env = env
         self.cell_size = cell_size
 
@@ -67,7 +68,7 @@ class Grid:
 class Grid_robplan:
     """ Grid configuration. """
 
-    def __init__(self, env, cell_size=0.25):  #cell_size=0.25
+    def __init__(self, env, cell_size=0.05):  #cell_size=0.25
 
         self.env = env
         self.cell_size = cell_size
