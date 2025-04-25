@@ -628,6 +628,9 @@ if __name__ == '__main__':
 
                 time.sleep(1)
 
+            if plan_temp[0] == "manipulate_valve":
+                self.manipulator.manipulate_valve(self.robot_pose, plan_temp[4])
+                time.sleep(1)
 
             i_ini=i_ini+1  # Next tasks
 

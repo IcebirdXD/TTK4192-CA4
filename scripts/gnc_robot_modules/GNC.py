@@ -4,6 +4,7 @@ import tf
 import matplotlib.pyplot as plt
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
+from open_manipulator_msgs.srv import SetJointPosition, SetJointPositionRequest
 from math import pi, sqrt, atan2, tan, sin, cos
 import time
 
@@ -249,3 +250,66 @@ class turtle_turn():
                     msg.pose.pose.orientation.z, msg.pose.pose.orientation.w]
         (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(quarternion)
         self.theta = yaw
+
+
+class Manipulator:
+    def __init__(self, valve_positions):
+        self.valve_positions = valve_positions
+        rospy.wait_for_service('/goal_joint_space_path')
+        self.move_arm = rospy.ServiceProxy('/goal_joint_space_path', SetJointPosition)
+
+    def manipulate_valve(self, robot_pose, valve_name):
+        # 1. Get current robot pose
+        robot_x = robot_pose.pose.pose.position.x
+        robot_y = robot_pose.pose.pose.position.y
+
+        orientation_q = robot_pose.pose.pose.orientation
+        orientation_list = [orientation_q.x, orientation_q.y, orientation_q.z, orientation_q.w]
+        (roll, pitch, yaw) = tf.transformations.euler_from_quaternion(orientation_list)
+
+        # 2. Assume valve is always directly north
+        valve_x = robot_x
+        valve_y = robot_y + 1.0
+
+
+        # 3. Compute direction to valve
+        dx = valve_x - robot_x
+        dy = valve_y - robot_y
+        target_angle = math.atan2(dy, dx)
+
+        # 4. Compute relative angle
+        relative_angle = self.normalize_angle(target_angle - yaw)
+
+        # 5. Move arm base to correct angle
+        self.move_arm_base(relative_angle)
+
+        # 6. Move to ready pose
+        self.move_arm('arm', 'ready', 1.0)
+        rospy.sleep(1.2)
+
+        # 7. Close gripper
+        self.move_arm('gripper', 'gripper_close', 1.0)
+        rospy.sleep(1.2)
+
+        # 8. Return to home
+        self.move_arm('arm', 'home', 1.0)
+        rospy.sleep(1.2)
+
+    def move_arm_base(self, angle_rad):
+        req = SetJointPositionRequest()
+        req.planning_group = "arm"
+        req.joint_position.joint_name = ['joint1', 'joint2', 'joint3', 'joint4']
+        req.joint_position.position = [
+            angle_rad, 0.0, 0.0, 0.0
+        ]
+        req.path_time = 1.5
+        self.move_arm(req)
+        rospy.sleep(1.7)
+
+    @staticmethod
+    def normalize_angle(angle):
+        while angle > math.pi:
+            angle -= 2 * math.pi
+        while angle < -math.pi:
+            angle += 2 * math.pi
+        return angle
