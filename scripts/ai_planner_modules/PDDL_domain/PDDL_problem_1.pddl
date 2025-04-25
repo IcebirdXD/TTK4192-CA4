@@ -188,6 +188,7 @@
       (seals_check valve1)
       (photo pump0)
       (photo pump1)
+      (valve_manipulated valve1)
     )
   )
 
