@@ -537,17 +537,10 @@ def check_pump_picture_ir_waypoint0():
         a=a+1
     time.sleep(5)
 
-def check_seals_valve_picture_eo_waypoint0():
-    a=0
-    while a<3:
-        print("Taking EO picture at waypoint0 ...")
-        time.sleep(1)
-        a=a+1
-    time.sleep(5)
 
 # Charging battery 
 def charge_battery_waypoint0():
-    print("chargin battert")
+    print("chargin battery")
     time.sleep(5)
 
 

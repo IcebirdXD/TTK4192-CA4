@@ -17,6 +17,7 @@
     (connects ?route1 - route ?location1 - location ?location2 - location)
     (route_available ?route1 - route)
     (in_city ?location1 - location ?city1 - city)
+    (valve_manipulated ?VAL - valve)
 
     ;; inspection status
     (no_photo ?subject1 - subject)
@@ -48,6 +49,22 @@
       (at start (not (at ?V ?O)))
       (at end (at ?V ?L))
     )
+  )
+
+  ;; Manipulate valve with robot arm
+  (:durative-action manipulate_valve
+    :parameters (?V - robot ?L - location ?A - robo_arm ?VAL - valve)
+    :duration (= ?duration 10)
+    :condition (and 
+      (over all (at ?V ?L))
+      (at start (at ?VAL ?L))
+      (at start (available ?A))
+      (at start (seals_check ?VAL)) ;; optional: require inspection before manipulation
+    )
+    :effect (and 
+      (at end (valve_manipulated ?VAL))
+    )
+
   )
 
   ;; Inspect valve with EO camera
